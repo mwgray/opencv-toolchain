@@ -2,22 +2,24 @@ import argparse
 import logging as log
 import os
 import subprocess
+import time
 import urllib
 import zipfile
-
-import time
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Build OpenCV + Python for Android SDK')
     parser.add_argument("--working-dir", default='.', help="Working directory (and output)")
     parser.add_argument('--runtime', choices=['android', 'termux'], default='android',
                         help="Indicates runtime environment.")
-    parser.add_argument('--architecture', choices=['x86', 'aarch64', 'arm'], default='x86',
-                        help="Which architecture to build for")
+    parser.add_argument('--abi',
+                        choices=["x86", "arm64-v8a", "armeabi-v7a"],
+                        default=["x86"],
+                        help="Which abi to build for")
     args = parser.parse_args()
 
     log.basicConfig(format='%(message)s', level=log.DEBUG)
     log.debug("Args: %s", args)
+
 
 def downloadAndExtractNDK_Linux():
     downloadAndExtractNDK("android-ndk-r15c-linux-x86_64.zip", "android-ndk-r15c-linux")
@@ -29,6 +31,7 @@ def downloadAndExtractNDK_Mac():
 
 def downloadAndExtractNDK(file, where):
     downloadAndExtract("https://dl.google.com/android/repository/%s" % file, where)
+
 
 def downloadAndExtract(url, where):
     testfile = urllib.URLopener()
@@ -112,8 +115,6 @@ def sendTermuxCommand(command):
 
 
 def setupTermux():
-    # TODO need to ensure emulator is running
-
     # copy build script to device
     subprocess.call(["adb", "push", "setup-termux.sh", "/sdcard/Download"])
 
@@ -138,23 +139,11 @@ def pullTermuxFiles():
 
 def buildOpenCV():
     workingDirectory = os.getcwd()
-    arch = "x86"
 
     env = os.environ.copy()
 
     opencv_working_dir = "%s/opencv-android-build/" % workingDirectory
     opencv_path = "%s/opencv" % workingDirectory
-
-    script = ""
-    script += "export PYTHON2_INCLUDE_DIR=%s/termux/files/usr/include/python2.7/" % workingDirectory
-    script += "\nexport PYTHON2_LIBRARY=%s/termux/files/usr/lib/libpython2.7.so" % workingDirectory
-    script += "\nexport PYTHON2_EXECUTABLE=%s/termux/files/usr/bin/python2" % workingDirectory
-    script += "\nexport PYTHON2_NUMPY_INCLUDE_DIRS=%s/termux/site-packages/numpy/core/include" % workingDirectory
-    script += "\nexport ANDROID_NDK=%s/android-ndk-r15c-darwin/android-ndk-r15c" % workingDirectory
-    script += "\nexport ANDROID_SDK=%s/android-sdk" % workingDirectory
-    script += "\ncd opencv/platforms/android"
-    script += "\npython build_sdk.py %s %s --abi %s" % (opencv_working_dir, opencv_path, arch)
-    script += "\n"
 
     # where the python include files are located
     env["PYTHON2_INCLUDE_DIR"] = "%s/termux/files/usr/include/python2.7/" % workingDirectory
@@ -182,17 +171,15 @@ def buildOpenCV():
     opencv_working_dir = "%s/opencv-android-build/" % workingDirectory
     opencv_path = "%s/opencv" % workingDirectory
 
-    scriptFile = file("build-opencv.sh", "w")
-    scriptFile.write(script)
-    scriptFile.close()
-
-    proc = subprocess.Popen(["python", "build_sdk.py", opencv_working_dir, opencv_path, "--abi=%s" % arch],
-                             cwd="./opencv/platforms/android", env=env)
+    proc = subprocess.Popen(["python", "build_sdk.py", opencv_working_dir, opencv_path, "--abi=%s" % args.abi],
+                            cwd="./opencv/platforms/android", env=env)
     proc.communicate()
     proc.wait()
 
+
 def testOpenCV():
-    subprocess.call(["adb", "push", "opencv-android-build/o4a/lib/x86/cv2.so", "/sdcard/Download"])
+    # TODO: fix hard pathing in android.toolchain.cmake
+    subprocess.call(["adb", "push", "opencv-android-build/o4a/lib/%s/cv2.so" % args.abi, "/sdcard/Download"])
 
     # run termux
     subprocess.call(["adb", "shell", "monkey", "-p", "com.termux", "1"])
@@ -208,7 +195,7 @@ def testOpenCV():
     time.sleep(1)
     sendTermuxCommand("quit()");
 
-# setupTermux()
-# pullTermuxFiles()
-# buildOpenCV()
-testOpenCV()
+    # setupTermux()
+    # pullTermuxFiles()
+    # buildOpenCV()
+    # testOpenCV()
