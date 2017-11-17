@@ -19,11 +19,6 @@ if __name__ == "__main__":
     log.basicConfig(format='%(message)s', level=log.DEBUG)
     log.debug("Args: %s", args)
 
-
-def executeShell(param):
-    pass
-
-
 def downloadAndExtractNDK_Linux():
     downloadAndExtractNDK("android-ndk-r15c-linux-x86_64.zip", "android-ndk-r15c-linux")
 
@@ -34,7 +29,6 @@ def downloadAndExtractNDK_Mac():
 
 def downloadAndExtractNDK(file, where):
     downloadAndExtract("https://dl.google.com/android/repository/%s" % file, where)
-
 
 def downloadAndExtract(url, where):
     testfile = urllib.URLopener()
@@ -109,6 +103,7 @@ def setupPrerequisites():
 
 
 def sendTermuxCommand(command):
+    log.info("Sending termux command over adb: %s" % command)
     # try to setup storage
     subprocess.call(["adb", "shell", "input", "keyboard", "text", "\"%s\"" % command])
 
@@ -134,23 +129,86 @@ def setupTermux():
     sendTermuxCommand("chmod 755 setup-termux.sh")
     sendTermuxCommand("./setup-termux.sh")
 
+
 def pullTermuxFiles():
     subprocess.call(["adb", "pull", "/sdcard/Download/termux.zip"])
     ndkZip = zipfile.ZipFile("termux.zip", 'r')
     ndkZip.extractall("termux")
 
+
 def buildOpenCV():
+    workingDirectory = os.getcwd()
+    arch = "x86"
 
+    env = os.environ.copy()
 
+    opencv_working_dir = "%s/opencv-android-build/" % workingDirectory
+    opencv_path = "%s/opencv" % workingDirectory
 
-setupTermux()
-pullTermuxFiles()
+    script = ""
+    script += "export PYTHON2_INCLUDE_DIR=%s/termux/files/usr/include/python2.7/" % workingDirectory
+    script += "\nexport PYTHON2_LIBRARY=%s/termux/files/usr/lib/libpython2.7.so" % workingDirectory
+    script += "\nexport PYTHON2_EXECUTABLE=%s/termux/files/usr/bin/python2" % workingDirectory
+    script += "\nexport PYTHON2_NUMPY_INCLUDE_DIRS=%s/termux/site-packages/numpy/core/include" % workingDirectory
+    script += "\nexport ANDROID_NDK=%s/android-ndk-r15c-darwin/android-ndk-r15c" % workingDirectory
+    script += "\nexport ANDROID_SDK=%s/android-sdk" % workingDirectory
+    script += "\ncd opencv/platforms/android"
+    script += "\npython build_sdk.py %s %s --abi %s" % (opencv_working_dir, opencv_path, arch)
+    script += "\n"
 
-"""
-# Get the latest Android NDK for target platform (Linux)
-wget https://dl.google.com/android/repository/android-ndk-r15c-linux-x86_64.zip
-unzip -o android-ndk-r15c-linux-x86_64.zip
-mv android-ndk-r15c android-ndk-r15c-linux
+    # where the python include files are located
+    env["PYTHON2_INCLUDE_DIR"] = "%s/termux/files/usr/include/python2.7/" % workingDirectory
 
-    :return:
-"""
+    # which .so file should the build process link against
+    env["PYTHON2_LIBRARY"] = "%s/termux/files/usr/lib/libpython2.7.so" % workingDirectory
+
+    # where the python executable _for the target platform_ is located
+    env["PYTHON2_EXECUTABLE"] = "%s/termux/files/usr/bin/python2" % workingDirectory
+
+    # where to find the NumPy include files
+    env["PYTHON2_NUMPY_INCLUDE_DIRS"] = "%s/termux/site-packages/numpy/core/include" % workingDirectory
+
+    # where the Android ndk is deployed
+    env["ANDROID_NDK"] = "%s/android-ndk-r15c-darwin/android-ndk-r15c" % workingDirectory
+
+    # where the Android sdk is deployed
+    env["ANDROID_SDK"] = "%s/android-sdk" % workingDirectory
+
+    # where to build everything
+    opencv_working_dir = "%s/opencv-android-build/" % workingDirectory
+    subprocess.call(["mkdir", "opencv-android-build"])
+
+    # where the base of the OpenCV project is
+    opencv_working_dir = "%s/opencv-android-build/" % workingDirectory
+    opencv_path = "%s/opencv" % workingDirectory
+
+    scriptFile = file("build-opencv.sh", "w")
+    scriptFile.write(script)
+    scriptFile.close()
+
+    proc = subprocess.Popen(["python", "build_sdk.py", opencv_working_dir, opencv_path, "--abi=%s" % arch],
+                             cwd="./opencv/platforms/android", env=env)
+    proc.communicate()
+    proc.wait()
+
+def testOpenCV():
+    subprocess.call(["adb", "push", "opencv-android-build/o4a/lib/x86/cv2.so", "/sdcard/Download"])
+
+    # run termux
+    subprocess.call(["adb", "shell", "monkey", "-p", "com.termux", "1"])
+
+    time.sleep(2)
+    sendTermuxCommand("cp /sdcard/Download/cv2.so .")
+    time.sleep(1)
+    sendTermuxCommand("python2");
+    time.sleep(1)
+    sendTermuxCommand("import cv2");
+    time.sleep(1)
+    sendTermuxCommand("print(cv2.imread('/sdcard/Download/ss.png').size)");
+    time.sleep(1)
+    sendTermuxCommand("quit()");
+
+# setupTermux()
+# pullTermuxFiles()
+# buildOpenCV()
+testOpenCV()

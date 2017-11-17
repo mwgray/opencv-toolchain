@@ -19,5 +19,8 @@ zip termux.zip -r ../../files/usr/lib/python2.7
 # Package python includes
 zip termux.zip -r ../../files/usr/include/python2.7
 
+# Package python executable
+zip termux.zip -r ../../files/usr/bin/python2
+
 # copy zip to sdcard
 cp termux.zip /sdcard/Download
