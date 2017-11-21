@@ -179,11 +179,12 @@ def testOpenCV(abi):
     time.sleep(1)
     sendTermuxCommand("quit()");
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Build OpenCV + Python for Android SDK')
     parser.add_argument('--abi',
                         choices=["x86", "arm64-v8a", "armeabi-v7a"],
-                        default="x86",
+                        default="armeabi-v7a",
                         help="Which abi to build for")
     args = parser.parse_args()
 
