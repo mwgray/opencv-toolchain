@@ -116,10 +116,10 @@ def setupTermux():
     sendTermuxCommand("./setup-termux.sh")
 
 
-def pullTermuxFiles():
+def pullTermuxFiles(abi):
     subprocess.call(["adb", "pull", "/sdcard/Download/termux.zip"])
     ndkZip = zipfile.ZipFile("termux.zip", 'r')
-    ndkZip.extractall("termux")
+    ndkZip.extractall("termux/%s" % abi)
 
 
 def buildOpenCV(abi):
@@ -127,20 +127,19 @@ def buildOpenCV(abi):
 
     env = os.environ.copy()
 
-    opencv_working_dir = "%s/opencv-android-build/" % workingDirectory
-    opencv_path = "%s/opencv" % workingDirectory
+    termux_path = "%s/termux/%s" % (workingDirectory, abi)
 
     # where the python include files are located
-    env["PYTHON2_INCLUDE_DIR"] = "%s/termux/files/usr/include/python2.7/" % workingDirectory
+    env["PYTHON2_INCLUDE_DIR"] = "%s/files/usr/include/python2.7/" % termux_path
 
     # which .so file should the build process link against
-    env["PYTHON2_LIBRARY"] = "%s/termux/files/usr/lib/libpython2.7.so" % workingDirectory
+    env["PYTHON2_LIBRARY"] = "%s/files/usr/lib/libpython2.7.so" % termux_path
 
     # where the python executable _for the target platform_ is located
-    env["PYTHON2_EXECUTABLE"] = "%s/termux/files/usr/bin/python2" % workingDirectory
+    env["PYTHON2_EXECUTABLE"] = "%s/files/usr/bin/python2" % termux_path
 
     # where to find the NumPy include files
-    env["PYTHON2_NUMPY_INCLUDE_DIRS"] = "%s/termux/site-packages/numpy/core/include" % workingDirectory
+    env["PYTHON2_NUMPY_INCLUDE_DIRS"] = "%s/site-packages/numpy/core/include" % termux_path
 
     # where the Android ndk is deployed
     env["ANDROID_NDK"] = "%s/android-ndk-r15c-darwin/android-ndk-r15c" % workingDirectory
@@ -149,7 +148,6 @@ def buildOpenCV(abi):
     env["ANDROID_SDK"] = "%s/android-sdk" % workingDirectory
 
     # where to build everything
-    opencv_working_dir = "%s/opencv-android-build/" % workingDirectory
     subprocess.call(["mkdir", "opencv-android-build"])
 
     # where the base of the OpenCV project is
