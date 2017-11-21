@@ -59,36 +59,10 @@ def cloneOpenCV():
         subprocess.call(["git", "-C", "opencv", "checkout", "python"])
 
 
-def setupDockcrossImage(image):
-    executable = "./dockcross-%s" % image
-    if os.path.isfile(executable):
-        log.debug("%s already found" % executable)
-    else:
-        log.debug("Setting up dockcross image for %s" % image)
-        executableFile = open(executable, "w")
-        subprocess.call(["docker", "run", "--rm", "dockcross/%s" % image], stdout=executableFile)
-        subprocess.call(["chmod", "+x", executable])
-
-
-def cloneDockCross():
-    if os.path.isdir("dockcross"):
-        log.debug("dockcross already found")
-    else:
-        log.debug("Cloning dockcross")
-        subprocess.call(["git", "clone", "https://github.com/dockcross/dockcross.git"])
-
-    setupDockcrossImage("linux-armv7")
-    setupDockcrossImage("linux-x86")
-
-
 def setupPrerequisites():
     downloadAndExtractNDK_Mac()
-    downloadAndExtractNDK_Linux()
     cloneNumpy()
     cloneOpenCV()
-    # docker is just needed for android target
-    cloneDockCross()
-
 
 def sendTermuxCommand(command):
     log.info("Sending termux command over adb: %s" % command)
