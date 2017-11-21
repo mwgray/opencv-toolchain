@@ -86,42 +86,7 @@ def setupPrerequisites():
     downloadAndExtractNDK_Linux()
     cloneNumpy()
     cloneOpenCV()
-    # docker is just needed for android target
     cloneDockCross()
-
-
-def sendTermuxCommand(command):
-    log.info("Sending termux command over adb: %s" % command)
-    # try to setup storage
-    escapedCommand = ("\"%s\"" % command).replace(" ", "%s")
-    subprocess.call(["adb", "shell", "input", "keyboard", "text", escapedCommand])
-
-    # enter
-    subprocess.call(["adb", "shell", "input", "keyevent", "66"])
-
-
-def setupTermux():
-    # copy build script to device
-    subprocess.call(["adb", "push", "setup-termux.sh", "/sdcard/Download"])
-
-    # grant sdcard access
-    subprocess.call(["adb", "shell", "pm", "grant", "com.termux", "android.permission.WRITE_EXTERNAL_STORAGE"])
-    subprocess.call(["adb", "shell", "pm", "grant", "com.termux", "android.permission.READ_EXTERNAL_STORAGE"])
-
-    # run termux
-    subprocess.call(["adb", "shell", "monkey", "-p", "com.termux", "1"])
-
-    time.sleep(3)
-    sendTermuxCommand("cp /sdcard/Download/setup-termux.sh .")
-    sendTermuxCommand("chmod 755 setup-termux.sh")
-    sendTermuxCommand("./setup-termux.sh")
-
-
-def pullTermuxFiles(abi):
-    subprocess.call(["adb", "pull", "/sdcard/Download/termux.zip"])
-    ndkZip = zipfile.ZipFile("termux.zip", 'r')
-    ndkZip.extractall("termux/%s" % abi)
-
 
 def buildOpenCV(abi):
     workingDirectory = os.getcwd()
