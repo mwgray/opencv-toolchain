@@ -138,6 +138,8 @@ def buildOpenCV(abi):
 def testOpenCV(abi):
     # TODO: fix hard pathing in android.toolchain.cmake
     subprocess.call(["adb", "push", "opencv-android-build/o4a/lib/%s/cv2.so" % abi, "/sdcard/Download"])
+    # upload screenshot
+    subprocess.call(["adb", "push", "ss.png", "/sdcard/Download"])
 
     # run termux
     subprocess.call(["adb", "shell", "monkey", "-p", "com.termux", "1"])
