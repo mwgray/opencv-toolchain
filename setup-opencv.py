@@ -180,22 +180,19 @@ def testOpenCV(abi):
     time.sleep(1)
     sendTermuxCommand("quit()");
 
-# setupPrerequisites()
-# setupTermux()
-# pullTermuxFiles()
-# buildOpenCV(args.abi)
-# testOpenCV(args.abi)
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Build OpenCV + Python for Android SDK')
-    parser.add_argument("--working-dir", default='.', help="Working directory (and output)")
-    parser.add_argument('--runtime', choices=['android', 'termux'], default='android',
-                        help="Indicates runtime environment.")
     parser.add_argument('--abi',
                         choices=["x86", "arm64-v8a", "armeabi-v7a"],
-                        default=["x86"],
+                        default="x86",
                         help="Which abi to build for")
     args = parser.parse_args()
 
     log.basicConfig(format='%(message)s', level=log.DEBUG)
     log.debug("Args: %s", args)
+
+    # setupPrerequisites()
+    # setupTermux()
+    # pullTermuxFiles()
+    # buildOpenCV(args.abi)
+    # testOpenCV(args.abi)
