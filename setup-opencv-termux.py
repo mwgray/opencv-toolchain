@@ -123,10 +123,10 @@ def buildOpenCV(abi):
     env["ANDROID_SDK"] = "%s/android-sdk" % workingDirectory
 
     # where to build everything
-    subprocess.call(["mkdir", "opencv-android-build"])
+    subprocess.call(["mkdir", "opencv-android-build-termux"])
 
     # where the base of the OpenCV project is
-    opencv_working_dir = "%s/opencv-android-build/" % workingDirectory
+    opencv_working_dir = "%s/opencv-android-build-termux/" % workingDirectory
     opencv_path = "%s/opencv" % workingDirectory
 
     proc = subprocess.Popen(["python", "build_sdk.py", opencv_working_dir, opencv_path, "--abi=%s" % abi],
@@ -137,7 +137,7 @@ def buildOpenCV(abi):
 
 def testOpenCV(abi):
     # TODO: fix hard pathing in android.toolchain.cmake
-    subprocess.call(["adb", "push", "opencv-android-build/o4a/lib/%s/cv2.so" % abi, "/sdcard/Download"])
+    subprocess.call(["adb", "push", "opencv-android-build-termux/o4a/lib/%s/cv2.so" % abi, "/sdcard/Download"])
     # upload screenshot
     subprocess.call(["adb", "push", "ss.png", "/sdcard/Download"])
 
