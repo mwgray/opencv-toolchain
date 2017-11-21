@@ -93,7 +93,8 @@ def setupPrerequisites():
 def sendTermuxCommand(command):
     log.info("Sending termux command over adb: %s" % command)
     # try to setup storage
-    subprocess.call(["adb", "shell", "input", "keyboard", "text", "\"%s\"" % command])
+    escapedCommand = ("\"%s\"" % command).replace(" ", "%s")
+    subprocess.call(["adb", "shell", "input", "keyboard", "text", escapedCommand])
 
     # enter
     subprocess.call(["adb", "shell", "input", "keyevent", "66"])
