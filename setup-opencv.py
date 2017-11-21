@@ -6,20 +6,6 @@ import time
 import urllib
 import zipfile
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Build OpenCV + Python for Android SDK')
-    parser.add_argument("--working-dir", default='.', help="Working directory (and output)")
-    parser.add_argument('--runtime', choices=['android', 'termux'], default='android',
-                        help="Indicates runtime environment.")
-    parser.add_argument('--abi',
-                        choices=["x86", "arm64-v8a", "armeabi-v7a"],
-                        default=["x86"],
-                        help="Which abi to build for")
-    args = parser.parse_args()
-
-    log.basicConfig(format='%(message)s', level=log.DEBUG)
-    log.debug("Args: %s", args)
-
 
 def downloadAndExtractNDK_Linux():
     downloadAndExtractNDK("android-ndk-r15c-linux-x86_64.zip", "android-ndk-r15c-linux")
@@ -74,7 +60,6 @@ def cloneOpenCV():
 
 
 def setupDockcrossImage(image):
-    # docker run --rm dockcross/linux-armv7 > ./dockcross-linux-armv7
     executable = "./dockcross-%s" % image
     if os.path.isfile(executable):
         log.debug("%s already found" % executable)
@@ -137,7 +122,7 @@ def pullTermuxFiles():
     ndkZip.extractall("termux")
 
 
-def buildOpenCV():
+def buildOpenCV(abi):
     workingDirectory = os.getcwd()
 
     env = os.environ.copy()
@@ -171,15 +156,15 @@ def buildOpenCV():
     opencv_working_dir = "%s/opencv-android-build/" % workingDirectory
     opencv_path = "%s/opencv" % workingDirectory
 
-    proc = subprocess.Popen(["python", "build_sdk.py", opencv_working_dir, opencv_path, "--abi=%s" % args.abi],
+    proc = subprocess.Popen(["python", "build_sdk.py", opencv_working_dir, opencv_path, "--abi=%s" % abi],
                             cwd="./opencv/platforms/android", env=env)
     proc.communicate()
     proc.wait()
 
 
-def testOpenCV():
+def testOpenCV(abi):
     # TODO: fix hard pathing in android.toolchain.cmake
-    subprocess.call(["adb", "push", "opencv-android-build/o4a/lib/%s/cv2.so" % args.abi, "/sdcard/Download"])
+    subprocess.call(["adb", "push", "opencv-android-build/o4a/lib/%s/cv2.so" % abi, "/sdcard/Download"])
 
     # run termux
     subprocess.call(["adb", "shell", "monkey", "-p", "com.termux", "1"])
@@ -195,7 +180,22 @@ def testOpenCV():
     time.sleep(1)
     sendTermuxCommand("quit()");
 
-    # setupTermux()
-    # pullTermuxFiles()
-    # buildOpenCV()
-    # testOpenCV()
+# setupPrerequisites()
+# setupTermux()
+# pullTermuxFiles()
+# buildOpenCV(args.abi)
+# testOpenCV(args.abi)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Build OpenCV + Python for Android SDK')
+    parser.add_argument("--working-dir", default='.', help="Working directory (and output)")
+    parser.add_argument('--runtime', choices=['android', 'termux'], default='android',
+                        help="Indicates runtime environment.")
+    parser.add_argument('--abi',
+                        choices=["x86", "arm64-v8a", "armeabi-v7a"],
+                        default=["x86"],
+                        help="Which abi to build for")
+    args = parser.parse_args()
+
+    log.basicConfig(format='%(message)s', level=log.DEBUG)
+    log.debug("Args: %s", args)
