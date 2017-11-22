@@ -88,6 +88,12 @@ def setupPrerequisites():
     cloneOpenCV()
     cloneDockCross()
 
+def buildNumpy(api, abi):
+    # start docker with /working mapped and run python build script
+    subprocess.call(["./dockcross-linux-x86", "-a", "-v %s:/working" % os.getcwd(), "bash", "-c",
+                     "python build-numpy-docker.py --api=%s --abi=%s" % (api, abi)])
+
+
 def buildOpenCV(abi):
     workingDirectory = os.getcwd()
 
