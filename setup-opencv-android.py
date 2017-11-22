@@ -123,6 +123,9 @@ def testOpenCV(abi):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Build OpenCV + Python for Android SDK')
+    parser.add_argument('--api',
+                        default="26",
+                        help="Which api version to use for custom toolchain")
     parser.add_argument('--abi',
                         choices=["x86", "arm64-v8a", "armeabi-v7a"],
                         default="armeabi-v7a",
