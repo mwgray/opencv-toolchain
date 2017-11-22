@@ -4,7 +4,6 @@ import os
 import subprocess
 import time
 import urllib
-import zipfile
 
 
 def downloadAndExtractNDK_Linux():
@@ -33,8 +32,12 @@ def downloadAndExtract(url, where):
         log.debug("%s is already extracted", where)
     else:
         log.debug("Extracting %s to %s", filename, where)
-        ndkZip = zipfile.ZipFile(filename, 'r')
-        ndkZip.extractall(where)
+        subprocess.call(["unzip",
+                         "-o",
+                         filename,
+                         "-d",
+                         where
+                         ])
 
 
 def cloneNumpy():
