@@ -40,61 +40,28 @@ def downloadAndExtract(url, where):
                          ])
 
 
-def cloneNumpy():
-    if os.path.isdir("numpy"):
-        log.debug("NumPy already found")
-    else:
-        log.debug("Cloning NumPy")
-        subprocess.call(["git", "clone", "https://github.com/numpy/numpy.git"])
-
-        log.debug("Checking out v1.12.0 tag")
-        subprocess.call(["git", "-C", "numpy", "checkout", "tags/v1.12.0"])
-
-
-def cloneOpenCV():
-    if os.path.isdir("opencv"):
-        log.debug("OpenCV already found")
-    else:
-        log.debug("Cloning OpenCV")
-        subprocess.call(["git", "clone", "https://github.com/mwgray/opencv.git"])
-
-        log.debug("Checking out python branch")
-        subprocess.call(["git", "-C", "opencv", "checkout", "python"])
-
-
 def setupDockcrossImage(image):
-    executable = "./dockcross-%s" % image
-    if os.path.isfile(executable):
-        log.debug("%s already found" % executable)
-    else:
-        log.debug("Setting up dockcross image for %s" % image)
-        executableFile = open(executable, "w")
-        subprocess.call(["docker", "run", "--rm", "dockcross/%s" % image], stdout=executableFile)
-        subprocess.call(["chmod", "+x", executable])
-
-
-def cloneDockCross():
-    if os.path.isdir("dockcross"):
-        log.debug("dockcross already found")
-    else:
-        log.debug("Cloning dockcross")
-        subprocess.call(["git", "clone", "https://github.com/dockcross/dockcross.git"])
-
-    setupDockcrossImage("linux-armv7")
-    setupDockcrossImage("linux-x86")
+    log.debug("Setting up dockcross image for %s" % image)
+    subprocess.call(["docker", "build", "-t", "android-python-%s" % image, "docker/%s" % image])
 
 
 def setupPrerequisites():
     downloadAndExtractNDK_Mac()
     downloadAndExtractNDK_Linux()
-    cloneNumpy()
-    cloneOpenCV()
-    cloneDockCross()
+    # setupDockcrossImage("linux-armv7")
+    setupDockcrossImage("linux-x86")
+
 
 def buildNumpy(api, abi):
     # start docker with /working mapped and run python build script
-    subprocess.call(["./dockcross-linux-x86", "-a", "-v %s:/working" % os.getcwd(), "bash", "-c",
-                     "python build-numpy-docker.py --api=%s --abi=%s" % (api, abi)])
+
+    command = ["docker", "run", "--rm",
+               "-v", "%s:/working" % os.getcwd(),
+               "android-python-%s" % abi, "bash", "-c",
+               "cd /working;"
+               "python build-numpy-docker.py --api=%s --abi=%s" % (api, abi),
+               ]
+    subprocess.call(command)
 
 
 def buildOpenCV(abi):

@@ -1,0 +1,8 @@
+[submodule "opencv"]
+	path = opencv
+	url = https://github.com/mwgray/opencv.git
+	branch = python
+[submodule "numpy"]
+	path = numpy
+	url = https://github.com/numpy/numpy.git
+	branch = tags/v1.12.0
