@@ -1,0 +1,11 @@
+android-ndk-*
+opencv-android-build-*
+python-*
+/python_lib_r28.zip
+/python_r28_x86.zip
+/python_r28.zip
+toolchain-*
+/termux
+/termux.zip
+.DS_Store
+/.idea
