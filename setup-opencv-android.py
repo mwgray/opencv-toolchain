@@ -69,19 +69,17 @@ def buildOpenCV(abi):
 
     env = os.environ.copy()
 
-    termux_path = "%s/termux/%s" % (workingDirectory, abi)
-
     # where the python include files are located
-    env["PYTHON2_INCLUDE_DIR"] = "%s/files/usr/include/python2.7/" % termux_path
+    env["PYTHON2_INCLUDE_DIR"] = "%s/python-lib/include/python2.7/" % workingDirectory
 
     # which .so file should the build process link against
-    env["PYTHON2_LIBRARY"] = "%s/files/usr/lib/libpython2.7.so" % termux_path
+    env["PYTHON2_LIBRARY"] = "%s/python-%s/lib/libpython2.7.so" % (workingDirectory, abi)
 
     # where the python executable _for the target platform_ is located
-    env["PYTHON2_EXECUTABLE"] = "%s/files/usr/bin/python2" % termux_path
+    env["PYTHON2_EXECUTABLE"] = "%s/python-%s/bin/python2" % (workingDirectory, abi)
 
     # where to find the NumPy include files
-    env["PYTHON2_NUMPY_INCLUDE_DIRS"] = "%s/site-packages/numpy/core/include" % termux_path
+    env["PYTHON2_NUMPY_INCLUDE_DIRS"] = "%s/numpy/dist/numpy/core/include" % workingDirectory
 
     # where the Android ndk is deployed
     env["ANDROID_NDK"] = "%s/android-ndk-r15c-darwin/android-ndk-r15c" % workingDirectory
