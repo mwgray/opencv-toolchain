@@ -7,10 +7,6 @@ import urllib
 import zipfile
 
 
-def downloadAndExtractNDK_Linux():
-    downloadAndExtractNDK("android-ndk-r15c-linux-x86_64.zip", "android-ndk-r15c-linux")
-
-
 def downloadAndExtractNDK_Mac():
     downloadAndExtractNDK("android-ndk-r15c-darwin-x86_64.zip", "android-ndk-r15c-darwin")
 
@@ -33,36 +29,13 @@ def downloadAndExtract(url, where):
         log.debug("%s is already extracted", where)
     else:
         log.debug("Extracting %s to %s", filename, where)
-        ndkZip = zipfile.ZipFile(filename, 'r')
-        ndkZip.extractall(where)
+        subprocess.call(["unzip",
+                         "-o",
+                         filename,
+                         "-d",
+                         where
+                         ])
 
-
-def cloneNumpy():
-    if os.path.isdir("numpy"):
-        log.debug("NumPy already found")
-    else:
-        log.debug("Cloning NumPy")
-        subprocess.call(["git", "clone", "https://github.com/numpy/numpy.git"])
-
-        log.debug("Checking out v1.12.0 tag")
-        subprocess.call(["git", "-C", "numpy", "checkout", "tags/v1.12.0"])
-
-
-def cloneOpenCV():
-    if os.path.isdir("opencv"):
-        log.debug("OpenCV already found")
-    else:
-        log.debug("Cloning OpenCV")
-        subprocess.call(["git", "clone", "https://github.com/mwgray/opencv.git"])
-
-        log.debug("Checking out python branch")
-        subprocess.call(["git", "-C", "opencv", "checkout", "python"])
-
-
-def setupPrerequisites():
-    downloadAndExtractNDK_Mac()
-    cloneNumpy()
-    cloneOpenCV()
 
 def sendTermuxCommand(command):
     log.info("Sending termux command over adb: %s" % command)
@@ -167,9 +140,9 @@ if __name__ == "__main__":
     log.basicConfig(format='%(message)s', level=log.DEBUG)
     log.debug("Args: %s", args)
 
-    log.debug("Press Enter to begin downloading and installing prerequisites()...")
+    log.debug("Press Enter to begin downloading and installing NDK...")
     raw_input("")
-    setupPrerequisites()
+    downloadAndExtractNDK_Mac()
     log.debug("Before continuing, ensure there is an Android device with Termux installed attached to the machine.")
     raw_input("")
     setupTermux()
