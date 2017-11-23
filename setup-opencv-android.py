@@ -106,20 +106,6 @@ def testOpenCV(abi):
     # TODO: fix hard pathing in android.toolchain.cmake
     subprocess.call(["adb", "push", "opencv-android-build-android/o4a/lib/%s/cv2.so" % abi, "/sdcard/Download"])
 
-    # run termux
-    subprocess.call(["adb", "shell", "monkey", "-p", "com.termux", "1"])
-
-    time.sleep(2)
-    sendTermuxCommand("cp /sdcard/Download/cv2.so .")
-    time.sleep(1)
-    sendTermuxCommand("python2");
-    time.sleep(1)
-    sendTermuxCommand("import cv2");
-    time.sleep(1)
-    sendTermuxCommand("print(cv2.imread('/sdcard/Download/ss.png').size)");
-    time.sleep(1)
-    sendTermuxCommand("quit()");
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Build OpenCV + Python for Android SDK')
@@ -128,26 +114,17 @@ if __name__ == "__main__":
                         help="Which api version to use for custom toolchain")
     parser.add_argument('--abi',
                         choices=["x86", "arm64-v8a", "armeabi-v7a"],
-                        default="armeabi-v7a",
+                        default="x86",
                         help="Which abi to build for")
     args = parser.parse_args()
 
     log.basicConfig(format='%(message)s', level=log.DEBUG)
     log.debug("Args: %s", args)
 
-    log.debug("Press Enter to begin downloading and installing prerequisites()...")
-    raw_input("")
     setupPrerequisites()
-    log.debug("Before continuing, ensure there is an Android device with Termux installed attached to the machine.")
-    raw_input("")
-    setupTermux()
-    log.debug("Termux should be building numpy and packages.  Wait until this is done to continue.")
-    raw_input("")
-    pullTermuxFiles(args.abi)
+    buildNumpy(args.api, args.abi)
     log.debug("Now for some hacks.  Manually edit android.toolchain.cmake:1386 to point to libpython2.7.so.\n"
-              "Then press enter to continue building OpenCV")
+             "Then press enter to continue building OpenCV")
     raw_input("")
     buildOpenCV(args.abi)
-    log.debug("OpenCV is built.  Press a key to test on device.")
-    raw_input("")
     testOpenCV(args.abi)
