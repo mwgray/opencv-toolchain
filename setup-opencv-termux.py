@@ -109,7 +109,6 @@ def buildOpenCV(abi):
 
 
 def testOpenCV(abi):
-    # TODO: fix hard pathing in android.toolchain.cmake
     subprocess.call(["adb", "push", "opencv-android-build-termux/o4a/lib/%s/cv2.so" % abi, "/sdcard/Download"])
     # upload screenshot
     subprocess.call(["adb", "push", "ss.png", "/sdcard/Download"])
@@ -149,6 +148,7 @@ if __name__ == "__main__":
     log.debug("Termux should be building numpy and packages.  Wait until this is done to continue.")
     raw_input("")
     pullTermuxFiles(args.abi)
+    # TODO: fix hard pathing in android.toolchain.cmake
     log.debug("Now for some hacks.  Manually edit android.toolchain.cmake:1386 to point to libpython2.7.so.\n"
               "Then press enter to continue building OpenCV")
     raw_input("")

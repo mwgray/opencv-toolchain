@@ -101,7 +101,6 @@ def buildOpenCV(abi):
 
 
 def testOpenCV(abi):
-    # TODO: fix hard pathing in android.toolchain.cmake
     subprocess.call(["adb", "push", "opencv-android-build-android/o4a/lib/%s/cv2.so" % abi, "/sdcard/Download"])
 
 
@@ -121,8 +120,9 @@ if __name__ == "__main__":
 
     setupPrerequisites()
     buildNumpy(args.api, args.abi)
+    # TODO: fix hard pathing in android.toolchain.cmake
     log.debug("Now for some hacks.  Manually edit android.toolchain.cmake:1386 to point to libpython2.7.so.\n"
-             "Then press enter to continue building OpenCV")
+              "Then press enter to continue building OpenCV")
     raw_input("")
     buildOpenCV(args.abi)
     testOpenCV(args.abi)
