@@ -53,15 +53,44 @@ def setupPrerequisites():
 
 
 def buildNumpy(api, abi):
-    # start docker with /working mapped and run python build script
+    # TODO: need to figure out which numpy file is the correct one
+    numpy_egg_filename = {"x86": "numpy-1.12.0-py2.7-linux-i686.egg",
+                          "armeabi-v7a": "numpy-1.12.0-py2.7-dunno-i686.egg"
+                          }[abi]
 
-    command = ["docker", "run", "--rm",
-               "-v", "%s:/working" % os.getcwd(),
-               "android-python-%s" % abi, "bash", "-c",
-               "cd /working;"
-               "python build-numpy-docker.py --api=%s --abi=%s" % (api, abi),
-               ]
-    subprocess.call(command)
+    numpy_egg_filename = {"x86": "numpy-1.12.0-py2.7-linux-i686.egg",
+                          "armeabi-v7a": "numpy-1.12.0-py2.7-dunno-i686.egg"
+                          }[abi]
+
+    numpy_dist_dir = "numpy/dist"
+    numpy_egg_path = "%s/%s" % (numpy_dist_dir, numpy_egg_filename)
+
+    if os.path.isfile(numpy_egg_path):
+        log.info("%s already exists!  Skipping")
+    else:
+        log.info("Building %s via docker..." % numpy_egg_path)
+
+        # start docker with /working mapped and run python build script
+        command = ["docker", "run", "--rm",
+                   "-v", "%s:/working" % os.getcwd(),
+                   "android-python-%s" % abi, "bash", "-c",
+                   "cd /working;"
+                   "python build-numpy-docker.py --api=%s --abi=%s" % (api, abi),
+                   ]
+        subprocess.call(command)
+
+    numpy_egg_extracted_path = "%s/%s" % (numpy_dist_dir, abi)
+
+    if os.path.isdir(numpy_egg_extracted_path):
+        log.info("NumPy already extracted to %s!  Skipping" % numpy_egg_extracted_path)
+    else:
+        log.debug("Extracting %s to %s", numpy_egg_path, numpy_egg_extracted_path)
+        subprocess.call(["unzip",
+                         "-o",
+                         numpy_egg_path,
+                         "-d",
+                         numpy_egg_extracted_path
+                         ])
 
 
 def buildOpenCV(abi):
