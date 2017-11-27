@@ -40,16 +40,16 @@ def downloadAndExtract(url, where):
                          ])
 
 
-def setupDockcrossImage(image):
-    log.debug("Setting up dockcross image for %s" % image)
-    subprocess.call(["docker", "build", "-t", "android-python-%s" % image, "docker/%s" % image])
+def setupDockcrossImage(abi):
+    log.debug("Setting up dockcross image for %s" % abi)
+    parameters = ["docker", "build", "-t", "android-python-%s" % abi, "docker/%s" % abi]
+    subprocess.call(parameters)
 
 
-def setupPrerequisites():
+def setupPrerequisites(abi):
     downloadAndExtractNDK_Mac()
     downloadAndExtractNDK_Linux()
-    # setupDockcrossImage("linux-armv7")
-    setupDockcrossImage("linux-x86")
+    setupDockcrossImage(abi)
 
 
 def buildNumpy(api, abi):
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     log.basicConfig(format='%(message)s', level=log.DEBUG)
     log.debug("Args: %s", args)
 
-    setupPrerequisites()
+    setupPrerequisites(args.abi)
     buildNumpy(args.api, args.abi)
     # TODO: fix hard pathing in android.toolchain.cmake
     log.debug("Now for some hacks.  Manually edit android.toolchain.cmake:1386 to point to libpython2.7.so.\n"
